@@ -1,0 +1,69 @@
+# Primary (pbx-pri) — priority 255, state MASTER
+# Secondary uses priority 240 and state BACKUP; same scripts on both nodes.
+global_defs {
+        enable_script_security
+        script_user www-data
+}
+
+vrrp_script check_fs_profiles {
+        script "/etc/keepalived/ka-status.sh"
+        interval 5
+        fall 18
+        rise 3
+}
+
+vrrp_sync_group VG1 {
+        group {
+                VIP_INTERNAL
+                VIP_SBC
+        }
+
+        track_script {
+                check_fs_profiles
+        }
+}
+
+vrrp_instance VIP_INTERNAL {
+        state MASTER
+        interface ens192
+
+        virtual_router_id 50
+        priority 255
+        advert_int 1
+        authentication {
+              auth_type AH
+              auth_pass CHANGE_ME
+        }
+
+        unicast_src_ip 192.168.32.191
+        unicast_peer {
+              192.168.32.192/24
+        }
+
+        notify "/etc/keepalived/ka-notify.sh"
+
+        virtual_ipaddress {
+              192.168.32.190/24 label ens192:1
+        }
+}
+
+vrrp_instance VIP_SBC {
+        state MASTER
+        interface ens224
+
+        virtual_router_id 60
+        priority 255
+        advert_int 1
+        authentication {
+                auth_type AH
+                auth_pass CHANGE_ME
+        }
+        unicast_src_ip 172.25.144.51
+        unicast_peer {
+                172.25.144.52/24
+        }
+
+        virtual_ipaddress {
+              172.25.144.50/24 label ens224:1
+        }
+}

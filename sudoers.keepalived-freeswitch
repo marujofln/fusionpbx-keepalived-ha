@@ -1,0 +1,3 @@
+# Allow keepalived script_user (www-data) to migrate FreeSWITCH.
+# Install: /etc/sudoers.d/keepalived-freeswitch (mode 0440)
+www-data ALL=(root) NOPASSWD: /bin/systemctl start freeswitch, /bin/systemctl stop freeswitch, /bin/systemctl restart freeswitch, /bin/systemctl is-active freeswitch, /bin/systemctl status freeswitch
