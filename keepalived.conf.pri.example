@@ -1,5 +1,6 @@
-# Primary (pbx-pri) — priority 255, state MASTER
-# Secondary uses priority 240 and state BACKUP; same scripts on both nodes.
+# Primary (pbx-pri) — priority 255.
+# Both nodes MUST use state BACKUP with nopreempt; otherwise nopreempt is ignored
+# and the higher-priority node reclaims VIP after recovery.
 global_defs {
         enable_script_security
         script_user www-data
@@ -8,7 +9,9 @@ global_defs {
 vrrp_script check_fs_profiles {
         script "/etc/keepalived/ka-status.sh"
         interval 5
-        fall 18
+        # fall must cover FreeSWITCH cold start; with grace (90s) fall=2 is usable,
+        # but fall>=6 is safer if grace stamp is missing.
+        fall 6
         rise 3
 }
 
@@ -24,11 +27,13 @@ vrrp_sync_group VG1 {
 }
 
 vrrp_instance VIP_INTERNAL {
-        state MASTER
+        # Required for nopreempt (keepalived ignores nopreempt if state is MASTER).
+        state BACKUP
         interface ens192
 
         virtual_router_id 50
         priority 255
+        nopreempt
         advert_int 1
         authentication {
               auth_type AH
@@ -48,11 +53,12 @@ vrrp_instance VIP_INTERNAL {
 }
 
 vrrp_instance VIP_SBC {
-        state MASTER
+        state BACKUP
         interface ens224
 
         virtual_router_id 60
         priority 255
+        nopreempt
         advert_int 1
         authentication {
                 auth_type AH

@@ -65,13 +65,30 @@ sed -i.bak \
   -e 's|/etc/keepalived/ka-notify\.pl|/etc/keepalived/ka-notify.sh|g' \
   /etc/keepalived/keepalived.conf
 
+# Prevent the higher-priority node from snatching VIP back after a fault recovery.
+# Without nopreempt, ka-status exit 0 (no VIP) + prio 255 immediately reclaims MASTER.
+# keepalived ignores nopreempt unless initial state is BACKUP on ALL instances.
+if ! grep -qE '^[[:space:]]*nopreempt' /etc/keepalived/keepalived.conf; then
+  sed -i -E '/^[[:space:]]*priority[[:space:]]+[0-9]+/a\        nopreempt' /etc/keepalived/keepalived.conf
+  echo "Inserted nopreempt after each priority line"
+fi
+# Force priority 255 on both nodes (symmetric priority; nopreempt prevents flapping).
+sed -i -E 's/^([[:space:]]*)priority[[:space:]]+[0-9]+/\1priority 255/' /etc/keepalived/keepalived.conf
+echo "Set priority 255 on all vrrp_instance blocks"
+
+# Force state BACKUP so nopreempt is honored (state MASTER disables nopreempt).
+if grep -qE '^[[:space:]]*state[[:space:]]+MASTER' /etc/keepalived/keepalived.conf; then
+  sed -i -E 's/^([[:space:]]*)state[[:space:]]+MASTER/\1state BACKUP/' /etc/keepalived/keepalived.conf
+  echo "Changed state MASTER -> BACKUP (required for nopreempt)"
+fi
+
 # Also archive the sed .bak into the backup dir if created after our snapshot
 if [[ -f /etc/keepalived/keepalived.conf.bak ]]; then
   cp -a /etc/keepalived/keepalived.conf.bak "${BACKUP_DIR}/keepalived/"
 fi
 
 echo "Updated /etc/keepalived/keepalived.conf:"
-grep -E 'ka-(status|notify)' /etc/keepalived/keepalived.conf
+grep -nE 'ka-(status|notify)|state |priority|nopreempt' /etc/keepalived/keepalived.conf
 
 # Validate config when the binary is available
 if command -v keepalived >/dev/null 2>&1; then

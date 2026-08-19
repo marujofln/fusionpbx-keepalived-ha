@@ -1,4 +1,5 @@
 # Secondary (pbx-sec) — priority 240, state BACKUP
+# state BACKUP + nopreempt on both nodes (including PRI).
 global_defs {
         enable_script_security
         script_user www-data
@@ -7,7 +8,9 @@ global_defs {
 vrrp_script check_fs_profiles {
         script "/etc/keepalived/ka-status.sh"
         interval 5
-        fall 18
+        # fall must cover FreeSWITCH cold start; with grace (90s) fall=2 is usable,
+        # but fall>=6 is safer if grace stamp is missing.
+        fall 6
         rise 3
 }
 
@@ -28,6 +31,7 @@ vrrp_instance VIP_INTERNAL {
 
         virtual_router_id 50
         priority 240
+        nopreempt
         advert_int 1
         authentication {
                 auth_type AH
@@ -52,6 +56,7 @@ vrrp_instance VIP_SBC {
 
         virtual_router_id 60
         priority 240
+        nopreempt
         advert_int 1
         authentication {
                 auth_type AH
