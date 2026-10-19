@@ -26,19 +26,19 @@ Na sua máquina local:
 ```bash
 cd ~/dev/fusionpbx-keepalived-ha
 
-# Via jump host, chave id_ed25519 no hop e no destino:
-scp -i ~/.ssh/id_ed25519 \
-  -o "ProxyCommand=ssh -i ~/.ssh/id_ed25519 -W %h:%p admin@jumphost.example.com" \
+# Via jump host, chave id_rsa no hop e no destino:
+scp -i ~/.ssh/id_rsa \
+  -o "ProxyCommand=ssh -i ~/.ssh/id_rsa -W %h:%p admin@jumphost.example.com" \
   install-on-node.sh ka-status.sh ka-notify.sh sudoers.keepalived-freeswitch \
   admin@pbx-sec.example.com:/tmp/
 
-scp -i ~/.ssh/id_ed25519 \
-  -o "ProxyCommand=ssh -i ~/.ssh/id_ed25519 -W %h:%p admin@jumphost.example.com" \
+scp -i ~/.ssh/id_rsa \
+  -o "ProxyCommand=ssh -i ~/.ssh/id_rsa -W %h:%p admin@jumphost.example.com" \
   install-on-node.sh ka-status.sh ka-notify.sh sudoers.keepalived-freeswitch \
   admin@pbx-pri.example.com:/tmp/
 ```
 
-Ou, já logado no jump host, `scp -i id_ed25519` / `rsync -e "ssh -i id_ed25519"` equivalente para `/tmp` em cada nó.
+Ou, já logado no jump host, `scp -i id_rsa` / `rsync -e "ssh -i id_rsa"` equivalente para `/tmp` em cada nó.
 
 ### 2. Rodar o instalador (ainda sem reload)
 
