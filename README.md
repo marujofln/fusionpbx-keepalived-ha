@@ -25,8 +25,12 @@ Active/passive high availability for FreeSWITCH/FusionPBX using [keepalived](htt
 Install on the **secondary first**, then on the primary, one node at a time. As root on each node:
 
 ```bash
-# copy install-on-node.sh, ka-status.sh, ka-notify.sh and
-# sudoers.keepalived-freeswitch to /tmp on the node, then:
+# on your workstation
+git clone https://github.com/marujofln/fusionpbx-keepalived-ha.git
+cd fusionpbx-keepalived-ha
+scp install-on-node.sh ka-status.sh ka-notify.sh sudoers.keepalived-freeswitch root@<node>:/tmp/
+
+# then, as root on the node
 bash /tmp/install-on-node.sh
 ```
 
